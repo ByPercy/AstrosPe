@@ -1,0 +1,28 @@
+------------------------------
+INTEGRANTES:
+------------------------------
+Gestor de Datos -> Percy Maza
+Especialista en Sonido -> Daniel Ruiz
+Frontend Developer -> Diaz & Whalter Iberico
+Storylling YPresentation -> Maria Pacaya
+infraestructura y DevOPS -> Percy Maza
+
+
+
+
+------------------------------
+ESTRUCTURA DE ARCHIVOS:
+------------------------------
+
+ASTROSPE/
+│
+├── index.html          <-- Estructura visual principal (Tú y Dev 3: UI & Design)
+├── style.css           <-- Estilos y diseño espacial (Dev 3: UI & Design)
+│
+├── js/
+│   ├── app.js          <-- Archivo principal que une todo
+│   ├── api.js          <-- Funciones fetch() de la NASA (Dev 1: Datos & APIs)
+│   └── audio.js        <-- Web Audio API y notas (Dev 2: Audio Engine)
+│
+└── docs/
+    └── borrador_pitch.txt  <-- Apuntes, textos científicos y guion (Storytelling)
