@@ -1,11 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <p>Hola</p>
-</body>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Earth Jukebox | NASA Space Apps</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  </head>
+  <body>
+    <div id="intro-screen" class="intro-screen">
+      <div class="cyber-overlay"></div>
+      <div class="cyber-menu">
+        <div class="logo-container">
+          <h1 class="glitch-text" data-text="EARTH">EARTH</h1>
+          <h1 class="glitch-text text-red" data-text="JUKEBOX">JUKEBOX</h1>
+          <p class="subtitle">NASA SPACE APPS // 2026</p>
+        </div>
+
+        <div class="menu-options">
+          <div class="lang-selector">
+            <label for="lang-select" data-i18n="config_lang"
+              >CONFIGURACIÓN DE SISTEMA (IDIOMA):</label
+            >
+            <select id="lang-select" class="cyber-select">
+              <option value="es">Español (ES)</option>
+              <option value="en">English (EN)</option>
+              <option value="zh">中文 (ZH)</option>
+              <option value="hi">हिन्दी (HI)</option>
+              <option value="ar">العربية (AR)</option>
+              <option value="fr">Français (FR)</option>
+              <option value="bn">বাংলা (BN)</option>
+              <option value="pt">Português (PT)</option>
+              <option value="ru">Русский (RU)</option>
+            </select>
+          </div>
+
+          <button id="btn-enter" class="cyber-btn main-btn" data-i18n="travel">
+            VIAJAR A LA TIERRA
+          </button>
+
+          <div
+            id="loading-text"
+            class="hidden text-cyan mt-2 text-center pre-line"
+            style="font-family: var(--font-mono); font-size: 0.85rem"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="hud-overlay hidden" id="hud-overlay">
+      <header class="hud-header">
+        <div class="logo">EARTH<span class="text-red">_</span>JUKEBOX</div>
+        <div class="hud-stats">
+          <div class="clock-container">
+            <span id="hud-time-local">Local: --:--</span>
+            <span id="hud-time-utc">UTC: --:--</span>
+          </div>
+          <span data-i18n="status">ESTADO:</span>
+          <span class="text-cyan" data-i18n="online">ONLINE</span>
+          <button id="btn-abort" class="abort-btn" data-i18n="abort">
+            ABORTAR MISIÓN
+          </button>
+        </div>
+      </header>
+
+      <aside id="info-panel" class="cyber-panel hidden">
+        <div class="panel-header">
+          <span class="panel-title" id="panel-title" data-i18n="zone"
+            >ZONA SELECCIONADA</span
+          >
+          <button id="btn-close-panel">X</button>
+        </div>
+        <div class="panel-content">
+          <div class="data-row">
+            <span data-i18n="coords">COORDENADAS:</span>
+            <span id="panel-coords" class="text-cyan">--</span>
+          </div>
+          <div class="data-row">
+            <span data-i18n="localtime">HORA LOCAL:</span>
+            <span id="panel-time" class="text-cyan">--</span>
+          </div>
+          <div class="data-row">
+            <span data-i18n="data">DATO ACTUAL:</span>
+            <span id="panel-value" class="text-red">--</span>
+          </div>
+          <div class="terminal-text" id="panel-desc">
+            <span id="typed-text"></span><span class="cursor">_</span>
+          </div>
+          <button id="btn-play-zone" class="cyber-btn mt-2" data-i18n="play">
+            REPRODUCIR SECUENCIA
+          </button>
+        </div>
+      </aside>
+
+      <div class="hud-footer">
+        <p data-i18n="footer">> SELECCIONA UN PUNTO EN EL PLANETA</p>
+      </div>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="js/main.js"></script>
+  </body>
 </html>
