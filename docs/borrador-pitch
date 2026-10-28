@@ -4,7 +4,6 @@ NOTA:---------------------------------------------------------------------------
 ----LO QUE QUIERAN MENCIONAR DE LO AGREGADO, MODIFICADO O MEJORADO---- 
 --------------------------------------------------------------------------------------------------------------
 
-
 ################################################
 ##DOCUMENTACION DE AVANCES, CAMBIOS O MEJORAS##
 ###############################################
@@ -14,5 +13,21 @@ Creacion del repositorio, creacion de carpetas y archivos a utilizar
 mas indicaciones de como trabajar con el proyecto
 ----------------
 
----20/10/26-----
+---27/10/26-----
+integracion de "main.js" como funcionalidad para la pagina web
+(integracion de animaciones y globo terraquio de visualizacion)
+----------------
+
+---27/10/26-----
+Actualizacion para mayor orden en archivos "app.js" sera el encargado de unir datos con funcionalidades
+ahora "app.js" se encarga de activar el globo terraquio de "main.js" y proximamente se encargara de dar
+los datos reales del satelite que tendra "api.js" a "audio.js"
+----------------
+
+---27/10/26-----
+
+----------------
+
+---27/10/26-----
+
 ----------------

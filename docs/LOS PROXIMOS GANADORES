@@ -20,9 +20,10 @@ ASTROSPE/
 ├── style.css           <-- Estilos y diseño espacial (Dev 3: UI & Design)
 │
 ├── js/
-│   ├── app.js          <-- Archivo principal que une todo
+│   ├── app.js          <-- Archivo principal que une todo y orquesta a los demas JS
 │   ├── api.js          <-- Funciones fetch() de la NASA (Dev 1: Datos & APIs)
-│   └── audio.js        <-- Web Audio API y notas (Dev 2: Audio Engine)
+│   └── audio.js        <-- Sistema de conversion de datos a melodia (Dev 2: Audio Engine)
+|   └── main.js         <-- Funcionalidad de Interfaz pagina web
 │
 └── docs/
     └── borrador_pitch.txt  <-- Apuntes, textos científicos y guion (Storytelling)
