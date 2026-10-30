@@ -1,9 +1,10 @@
-import * as THREE from "three";
+import * as THREE from "three"; //herramienta 3D de js
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
+//Export para que "app.js" pueda llamar a este archivo
 export class EarthScene {
   constructor(containerId) {
-    this.container = document.getElementById(containerId);
+    this.container = document.getElementById(containerId); //captura el ID del contenedor HTML "canvas-container"
     this.scene = null;
     this.camera = null;
     this.renderer = null;
@@ -14,11 +15,13 @@ export class EarthScene {
   }
 
   init() {
-    this.scene = new THREE.Scene();
+    this.scene = new THREE.Scene();//CREACION DEL ESPACIO 3D (EL ESTUDIO DE GRABACION)
     
+    //CREACION DE LA CAMARA QUE OBSERVA EL ESPECTADOR
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.camera.position.z = 50;
+    this.camera.position.z = 50; //DISTANCIA CON EL CENTRO
 
+    //RENDERIZA/DIBUJA LOS GRAFICOS EN EL HTML
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -34,14 +37,16 @@ export class EarthScene {
     this.controls.autoRotate = true;
     this.controls.autoRotateSpeed = 0.5;
 
-    // --- CARGA DE TEXTURAS Y OBJETOS CELESTIALES ---
+    //DOCUMENTEN CRJOOOOOOOOO//
+    // ---CARGA DE TEXTURAS DE GLOBO TERRAQUIO ---
+    //TRAE EL PLANO DE LA TIERRA Y LUNA DE INTERNET MEDIANTE LOS LINK HTTPS
     const textureLoader = new THREE.TextureLoader();
     const mapDay = textureLoader.load("https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg");
     const mapNight = textureLoader.load("https://unpkg.com/three-globe/example/img/earth-night.jpg");
-    const mapClouds = textureLoader.load("https://unpkg.com/three-globe/example/img/earth-clouds.png");
+    const mapClouds = textureLoader.load("https://threejs.org/examples/textures/planets/earth_clouds_1024.png");
     const moonTexture = textureLoader.load("https://threejs.org/examples/textures/planets/moon_1024.jpg");
 
-    // Tierra
+    //Gente Este es el Globo Terraquio
     const earthMaterial = new THREE.MeshPhongMaterial({
       map: mapDay,
       emissiveMap: mapNight,
@@ -49,8 +54,8 @@ export class EarthScene {
       emissiveIntensity: 0.8,
       shininess: 5,
     });
-    this.earth = new THREE.Mesh(new THREE.SphereGeometry(5, 64, 64), earthMaterial);
-    this.scene.add(this.earth);
+    this.earth = new THREE.Mesh(new THREE.SphereGeometry(4, 64, 64), earthMaterial);
+    this.scene.add(this.earth);//MUESTRA EL RESULTADO FINAL DE LA CONVINACION DE TODOS
 
     // Luna
     this.moonOrbit = new THREE.Group();
@@ -62,9 +67,10 @@ export class EarthScene {
 
     // Nubes
     this.clouds = new THREE.Mesh(
-      new THREE.SphereGeometry(5.05, 64, 64),
+      new THREE.SphereGeometry(4.2, 64, 64),
       new THREE.MeshPhongMaterial({
         map: mapClouds,
+        emissiveMap: mapClouds,
         transparent: true,
         opacity: 0.3,
         blending: THREE.AdditiveBlending,
