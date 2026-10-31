@@ -12,6 +12,7 @@ function latLonToVector3(lat, lon, radius) {
 }
 
 //Export para que "app.js" pueda llamar a este archivo
+//Crea variables vacias para la creacion 3D de la pagina
 export class EarthScene {
   constructor(containerId) {
     this.container = document.getElementById(containerId); //captura el ID del contenedor HTML "canvas-container"
@@ -23,7 +24,8 @@ export class EarthScene {
     this.clouds = null;
     this.moonOrbit = null;
 
-    // 1. Declaramos las zonas aquí también para tenerlas organizadas
+    //Declaracion de zonas con lantitud y longitud correctas de cada zona
+    //La zona Agregada aparecera en el mapa con un punto rojo gracias a la funcion Matematica de main.js
     this.zones = [
       { id: "amazonas", name: "Selva del Amazonas", lat: -3.4653, lon: -62.2159 },
       { id: "tokyo", name: "Tokio, Japón", lat: 35.6762, lon: 139.6503 },
@@ -98,12 +100,12 @@ export class EarthScene {
     this.scene.add(this.clouds);
 
 
-    // --- PUNTOS ROJOS (ZONAS INTERACTIVAS) ---
+    //CREACION DE ASPECTO PUNTOS ROJOS (ZONAS INTERACTIVAS)--
     this.markerGroup = new THREE.Group();
     this.scene.add(this.markerGroup);
 
     const dotGeometry = new THREE.SphereGeometry(0.12, 16, 16);
-    const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Rojo brillante
+    const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); //color de ahora Rojo brillante
 
     this.zones.forEach(zone => {
       const marker = new THREE.Mesh(dotGeometry, dotMaterial);
@@ -113,7 +115,7 @@ export class EarthScene {
       marker.position.copy(position);
 
       // Guardamos la info de la zona dentro del objeto 3D
-      marker.userData = zone; 
+      marker.userData = zone;
 
       this.markerGroup.add(marker);
     });
