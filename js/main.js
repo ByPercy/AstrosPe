@@ -1,6 +1,16 @@
 import * as THREE from "three"; //herramienta 3D de js
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
+// Función para transformar Lat/Lon en un punto 3D sobre la esfera
+function latLonToVector3(lat, lon, radius) {
+  const phi = (90 - lat) * (Math.PI / 180);
+  const theta = (lon + 180) * (Math.PI / 180);
+  const x = -(radius * Math.sin(phi) * Math.cos(theta));
+  const z = radius * Math.sin(phi) * Math.sin(theta);
+  const y = radius * Math.cos(phi);
+  return new THREE.Vector3(x, y, z);
+}
+
 //Export para que "app.js" pueda llamar a este archivo
 export class EarthScene {
   constructor(containerId) {
@@ -12,6 +22,15 @@ export class EarthScene {
     this.earth = null;
     this.clouds = null;
     this.moonOrbit = null;
+
+    // 1. Declaramos las zonas aquí también para tenerlas organizadas
+    this.zones = [
+      { id: "amazonas", name: "Selva del Amazonas", lat: -3.4653, lon: -62.2159 },
+      { id: "tokyo", name: "Tokio, Japón", lat: 35.6762, lon: 139.6503 },
+      { id: "sahara", name: "Desierto del Sahara", lat: 23.4162, lon: 25.6628 }
+    ];
+    this.markerGroup = null;
+
   }
 
   init() {
@@ -77,6 +96,28 @@ export class EarthScene {
       })
     );
     this.scene.add(this.clouds);
+
+
+    // --- PUNTOS ROJOS (ZONAS INTERACTIVAS) ---
+    this.markerGroup = new THREE.Group();
+    this.scene.add(this.markerGroup);
+
+    const dotGeometry = new THREE.SphereGeometry(0.12, 16, 16);
+    const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Rojo brillante
+
+    this.zones.forEach(zone => {
+      const marker = new THREE.Mesh(dotGeometry, dotMaterial);
+      
+      // La Tierra tiene radio 4, ponemos los puntos en 4.15 para que floten encima
+      const position = latLonToVector3(zone.lat, zone.lon, 4.15);
+      marker.position.copy(position);
+
+      // Guardamos la info de la zona dentro del objeto 3D
+      marker.userData = zone; 
+
+      this.markerGroup.add(marker);
+    });
+
 
     // Luces
     const sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
