@@ -1,6 +1,7 @@
 import * as THREE from "three"; // <-- 1. ¡Faltaba importar THREE aquí!
 import { EarthScene } from "./main.js";
 import { getClimateData } from "./api.js";
+import { sonificarCoordenadas } from "./audio.js";
 
 export class AppController {
   constructor() {
@@ -59,6 +60,7 @@ export class AppController {
           const climateData = await getClimateData(zone.lat, zone.lon);
           console.log("¡Datos listos para el audio:", climateData);
           // AQUÍ LUEGO CONECTAREMOS EL AUDIO DE TU COMPAÑERO
+          sonificarCoordenadas(zone.lat, zone.lon);
         };
       }
     });
