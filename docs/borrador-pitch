@@ -10,25 +10,38 @@ NOTA:---------------------------------------------------------------------------
 
 ---19/10/26-----
 Creacion del repositorio, creacion de carpetas y archivos a utilizar
-mas indicaciones de como trabajar con el proyecto
+mas indicaciones de como trabajar con el proyecto.
 ----------------
 
 ---27/10/26-----
 integracion de "main.js" como funcionalidad para la pagina web
-(integracion de animaciones y globo terraquio de visualizacion)
+(integracion de animaciones y globo terraquio de visualizacion).
 ----------------
 
 ---27/10/26-----
 Actualizacion para mayor orden en archivos "app.js" sera el encargado de unir datos con funcionalidades
 ahora "app.js" se encarga de activar el globo terraquio de "main.js" y proximamente se encargara de dar
-los datos reales del satelite que tendra "api.js" a "audio.js"
+los datos reales del satelite que tendra "api.js" a "audio.js".
 ----------------
 
 ---30/10/26-----
 Agregar funcion de selector de lugar localizado previamente registrado en el array list
-mas detector del puntero
+mas detector del puntero.
 ----------------
 
 ---31/10/26-----
-Agregar APi de Nasa para obtener datos climaticos de temperatura de cada zona mediante los registros longitud y altitud registrado en "main.js"
+Agregar APi de Nasa para obtener datos climaticos de temperatura de cada zona mediante los registros longitud y altitud registrado en "main.js".
+----------------
+
+---06/11/26-----
+Se agrego el sistema de sonido al boton para reproducir los datos del clima segun el lugar seleccionado.
+----------------
+
+---10/11/26-----
+Se agreo la hora y ultima temperatura en el apartado de informacion de los lugares.
+previamente listados.
+----------------
+
+---11/11/26-----
+Agregar Idiomas Ingles, se creo un nuevo js excluviamente para los idiomas que seleccion el usuario.
 ----------------
