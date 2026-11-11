@@ -11,6 +11,8 @@ function latLonToVector3(lat, lon, radius) {
   return new THREE.Vector3(x, y, z);
 }
 
+
+
 //Export para que "app.js" pueda llamar a este archivo
 //Crea variables vacias para la creacion 3D de la pagina
 export class EarthScene {
@@ -23,13 +25,21 @@ export class EarthScene {
     this.earth = null;
     this.clouds = null;
     this.moonOrbit = null;
+    this.sunLight = null; // <-- Referencia para mover el sol dinámicamente
 
     //Declaracion de zonas con lantitud y longitud correctas de cada zona
     //La zona Agregada aparecera en el mapa con un punto rojo gracias a la funcion Matematica de main.js
     this.zones = [
       { id: "amazonas", name: "Selva del Amazonas", lat: -3.4653, lon: -62.2159 },
       { id: "tokyo", name: "Tokio, Japón", lat: 35.6762, lon: 139.6503 },
-      { id: "sahara", name: "Desierto del Sahara", lat: 23.4162, lon: 25.6628 }
+      { id: "sahara", name: "Desierto del Sahara", lat: 23.4162, lon: 25.6628 },
+      { id: "lima", name: "Peru, Lima", lat: -12.13719756358539, lon: -76.92141636188363 },
+      // --- NUEVOS PUNTOS CLAVE DE MONITOREO DE LA NASA ---
+      { id: "greenland", name: "Groenlandia (Deshielo Polar)", lat: 72.5798, lon: -38.4590 },
+      { id: "antarctica", name: "Antártida (Base McMurdo)", lat: -77.8419, lon: 166.6863 },
+      { id: "death_valley", name: "Valle de la Muerte, EE.UU", lat: 36.5323, lon: -116.9325 },
+      { id: "coral_reef", name: "Gran Barrera de Coral, Australia", lat: -18.2871, lon: 147.6992 },
+      { id: "siberia", name: "Siberia (Permafrost Ruso)", lat: 66.4238, lon: 112.4281 }
     ];
     this.markerGroup = null;
 
@@ -120,12 +130,11 @@ export class EarthScene {
       this.markerGroup.add(marker);
     });
 
-
-    // Luces
-    const sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
-    sunLight.position.set(20, 0, 0);
-    this.scene.add(sunLight);
+    // --- LUZ DINÁMICA DEL SOL ---
+    this.sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    this.scene.add(this.sunLight);
     this.scene.add(new THREE.AmbientLight(0x111122, 0.2));
+
 
     // Estrellas
     const starGeometry = new THREE.BufferGeometry();
@@ -137,6 +146,31 @@ export class EarthScene {
 
     this.animate();
   }
+
+  // NUEVO: Actualiza la posición del Sol basándose en la hora UTC real
+  updateSunPosition() {
+    if (!this.sunLight) return;
+
+    const now = new Date();
+    const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60; // Hora decimal UTC (ej: 14.5)
+
+    // El sol da una vuelta completa (360°) cada 24 horas
+    const sunAngle = (utcHours / 24) * Math.PI * 2;
+
+    const distance = 40; // Distancia de la luz del sol
+    
+    // 🌍Agregamos un desfase (offset) para alinear la textura 
+    // de la imagen con el sol real del planeta. 
+    const textureOffset = Math.PI;
+    
+    // Movemos la luz del sol en un círculo alrededor del eje Y (rotación terrestre)
+    const sunX = Math.cos(sunAngle - Math.PI / 2 + textureOffset) * distance;
+    const sunZ = Math.sin(sunAngle - Math.PI / 2 + textureOffset) * distance;
+
+    this.sunLight.position.set(sunX, 0, sunZ);
+  }
+
+
 
   zoomIn() {
     gsap.to(this.camera.position, {
@@ -151,6 +185,7 @@ export class EarthScene {
 
   animate() {
     requestAnimationFrame(() => this.animate());
+    this.updateSunPosition();
     if (this.clouds) this.clouds.rotation.y += 0.0005;
     if (this.moonOrbit) this.moonOrbit.rotation.y += 0.0002;
     this.controls.update();

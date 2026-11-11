@@ -2,13 +2,34 @@ import * as THREE from "three"; // <-- 1. ¡Faltaba importar THREE aquí!
 import { EarthScene } from "./main.js";
 import { getClimateData } from "./api.js";
 import { sonificarCoordenadas } from "./audio.js";
+import { translations } from "./idioma.js"; // <-- Importamos el diccionario correctamente
 
 export class AppController {
   constructor() {
     this.earth = new EarthScene("canvas-container");
   }
 
-  startMission() {
+  changeLanguage(lang) {
+    const elements = document.querySelectorAll("[data-i18n]");
+    elements.forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      if (translations[lang] && translations[lang][key]) {
+        el.innerText = translations[lang][key];
+      }
+    });
+  }
+
+  async startMission() {
+
+    const userGeo = await getUserLocationAndUTC();
+
+    // 2. Inyectamos la hora Local y UTC en la cabecera superior del HUD
+    const hudLocal = document.getElementById("hud-time-local");
+    const hudUtc = document.getElementById("hud-time-utc");
+
+    if (hudLocal) hudLocal.innerText = `Local: ${userGeo.localTime}`;
+    if (hudUtc) hudUtc.innerText = `UTC: ${userGeo.utcTime}`;
+
     // 1. Inicializa el mundo 3D en pantalla
     this.earth.init();
 
@@ -27,6 +48,19 @@ export class AppController {
       document.getElementById("info-panel").classList.add("hidden");
     });
   }
+
+  // Función para calcular la hora local aproximada de cualquier longitud
+  getLocalTime(lon) {
+    const totalMinutesOffset = lon * 4; 
+    const now = new Date();
+    const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes() + totalMinutesOffset;
+    let localMinutes = (utcMinutes % 1440 + 1440) % 1440;
+    const hours = Math.floor(localMinutes / 60);
+    const minutes = Math.floor(localMinutes % 60);
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  }
+
+  
 
   setupInteractions() {
     const raycaster = new THREE.Raycaster();
@@ -53,13 +87,28 @@ export class AppController {
         document.getElementById("panel-title").innerText = zone.name;
         document.getElementById("panel-coords").innerText = `Lat: ${zone.lat}, Lon: ${zone.lon}`;
 
+       // 2. NUEVO: Calcular y mostrar la hora local en tiempo real
+        const horaLocal = this.getLocalTime(zone.lon);
+        // Asegúrate de tener un elemento en tu HTML con id="panel-time", o créalo:
+        document.getElementById("panel-time").innerText = `🕒${horaLocal}`;
+
+        // 3. NUEVO: Consultar los grados de la NASA automáticamente al abrir la zona
+        document.getElementById("panel-temp").innerText = "🌡️";
+        
+        getClimateData(zone.lat, zone.lon).then(climateData => {
+          if (climateData && climateData.length > 0) {
+            // Tomamos el último valor de temperatura disponible del arreglo
+            const tempActual = climateData[climateData.length - 1];
+            document.getElementById("panel-temp").innerText = `🌡️${tempActual} °C`;
+          } else {
+            document.getElementById("panel-temp").innerText = "🌡️ Datos no disponibles";
+          }
+        });
+
         // 4. Configurar el botón de reproducir para llamar a la API
         const btnPlay = document.getElementById("btn-play-zone");
-        btnPlay.onclick = async () => {
-          console.log(`🎵 Obteniendo clima de la NASA para ${zone.name}...`);
-          const climateData = await getClimateData(zone.lat, zone.lon);
-          console.log("¡Datos listos para el audio:", climateData);
-          // AQUÍ LUEGO CONECTAREMOS EL AUDIO DE TU COMPAÑERO
+        btnPlay.onclick = () => {
+          console.log(`🎵 Sonificando coordenadas de ${zone.name}...`);
           sonificarCoordenadas(zone.lat, zone.lon);
         };
       }
@@ -67,8 +116,77 @@ export class AppController {
   }
 }
 
+
 // Inicialización del controlador central al cargar la página
 const app = new AppController();
+
+// 🌐 Escucha global para cambiar el idioma desde el menú de inicio
+document.getElementById("lang-select").addEventListener("change", (event) => {
+  const selectedLang = event.target.value; 
+  app.changeLanguage(selectedLang);
+  console.log("🌐 Idioma cambiado a:", selectedLang);
+});
+
+// Función para solicitar ubicación al navegador y calcular la hora UTC/Local del usuario
+function getUserLocationAndUTC() {
+  return new Promise((resolve) => {
+    // 1. Verificamos si el navegador soporta Geolocalización
+    if ("geolocation" in navigator) {
+      
+      // 2. Solicitamos la posición actual
+      navigator.geolocation.getCurrentPosition(
+        // CASO ÉXITO: El usuario hizo clic en "Permitir"
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          
+          // Capturamos la hora UTC del sistema
+          const now = new Date();
+          const utcHours = String(now.getUTCHours()).padStart(2, '0');
+          const utcMinutes = String(now.getUTCMinutes()).padStart(2, '0');
+          
+          // Capturamos la hora Local del usuario
+          const localHours = String(now.getHours()).padStart(2, '0');
+          const localMinutes = String(now.getMinutes()).padStart(2, '0');
+
+          resolve({
+            localTime: `${localHours}:${localMinutes}`,
+            utcTime: `${utcHours}:${utcMinutes}`,
+            lat: lat,
+            lon: lon,
+            success: true
+          });
+        },
+        // CASO ERROR/RECHAZO: El usuario bloqueó la ubicación o falló el GPS
+        (error) => {
+          console.warn("⚠️ Permiso denegado o error de ubicación:", error.message);
+          
+          const now = new Date();
+          const utcHours = String(now.getUTCHours()).padStart(2, '0');
+          const utcMinutes = String(now.getUTCMinutes()).padStart(2, '0');
+          const localHours = String(now.getHours()).padStart(2, '0');
+          const localMinutes = String(now.getMinutes()).padStart(2, '0');
+
+          // Devolvemos valores de contingencia (Lima por defecto)
+          resolve({
+            localTime: `${localHours}:${localMinutes}`,
+            utcTime: `${utcHours}:${utcMinutes}`,
+            lat: -12.0464,
+            lon: -77.0428,
+            success: false
+          });
+        },
+        { timeout: 8000 } // Máximo 8 segundos de espera
+      );
+
+    } else {
+      // Navegador antiguo sin soporte
+      resolve({ localTime: "--:--", utcTime: "--:--", success: false });
+    }
+  });
+}
+
+
 
 document.getElementById("btn-enter").addEventListener("click", () => {
   app.startMission();
@@ -78,3 +196,4 @@ document.getElementById("btn-enter").addEventListener("click", () => {
 document.getElementById("btn-abort").addEventListener("click", () => {
   location.reload(); // Recarga limpia para reiniciar el estado
 });
+

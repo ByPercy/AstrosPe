@@ -37,11 +37,11 @@ body {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background-image: url("../img/lucy-bg.jpg");
-  background-size: cover;
-  background-position: left center;
+  background-image: url("assets/Fredbox3d.gif");
+  background-size: 65% auto;           /*porcentaje si quieres el GIF más chico o más grande */
+  background-position: right 10% center; /*Coloca el GIF a la derecha para que no tape toda la pantalla */
   background-repeat: no-repeat;
-  background-color: var(--cyber-dark);
+  background-color: #030308;           /*Un fondo oscuro profundo que combina perfecto */
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -59,7 +59,7 @@ body {
       rgba(5, 5, 5, 0.4) 40%,
       rgba(5, 5, 5, 0) 100%
     ),
-    radial-gradient(circle at 50% 50%, rgba(255, 0, 60, 0.15), transparent);
+    radial-gradient(circle at 50% 50%, rgba(0, 8, 255, 0.15), transparent);
   z-index: 0;
 }
 
@@ -127,7 +127,7 @@ body {
   cursor: pointer;
   clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
   transition: all 0.2s;
-  box-shadow: 0 0 10px rgba(255, 0, 60, 0.3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 .cyber-btn:hover {
   background: var(--cyber-red);
