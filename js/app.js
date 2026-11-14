@@ -110,36 +110,38 @@ export class AppController {
     const anomalyElement = document.getElementById("panel-anomaly");
     if (anomalyElement) anomalyElement.innerText = "";
     
-    const terminalBox = document.getElementById("terminal-message");
-    if (terminalBox) terminalBox.innerText = "Conectando con la NASA POWER API...";
-
+    // ✨ Usamos correctamente el ID de tu HTML: "typed-text"
+    const typedTextEl = document.getElementById("typed-text");
+    if (typedTextEl) typedTextEl.innerText = "Conectando con la NASA POWER API...";
+    
     getClimateData(zone.lat, zone.lon).then(climateData => {
       if (climateData && climateData.length > 0) {
         const tempActual = climateData[climateData.length - 1];
         if (panelTempEl) panelTempEl.innerText = `🌡️ ${tempActual} °C`;
 
-        // Opcional: Si implementaste el cálculo de anomalía térmica con historicalAvg:
+        // 🌟 Cálculo de la anomalía térmica
         if (zone.historicalAvg !== undefined) {
           const anomaly = (tempActual - zone.historicalAvg).toFixed(1);
           const anomalySign = anomaly > 0 ? `+${anomaly}` : anomaly;
           if (anomalyElement) {
-            anomalyElement.innerText = `Anomalía vs histórico: ${anomalySign} °C`;
-            anomalyElement.style.color = anomaly > 0 ? 'var(--cyber-red)' : 'var(--cyber-cyan)';
+            anomalyElement.innerText = `${anomalySign} °C vs hist.`;
+            anomalyElement.style.color = anomaly > 0 ? '#ff3366' : '#00ffff';
           }
         }
 
-        // Mostrar texto de impacto si existe la clave
+        // 🌟 Mensaje directo DENTRO de #typed-text
         if (zone.impactKey && translations[this.currentLang] && translations[this.currentLang][zone.impactKey]) {
-          if (terminalBox) terminalBox.innerText = translations[this.currentLang][zone.impactKey];
+          if (typedTextEl) typedTextEl.innerText = translations[this.currentLang][zone.impactKey];
         } else {
-          if (terminalBox) terminalBox.innerText = `Análisis completado para coordenadas (${zone.lat}, ${zone.lon}).`;
+          if (typedTextEl) typedTextEl.innerText = `Análisis completado para coordenadas (${zone.lat}, ${zone.lon}).`;
         }
 
       } else {
         if (panelTempEl) panelTempEl.innerText = "🌡️ Datos no disponibles";
-        if (terminalBox) terminalBox.innerText = "Error: No se pudieron recuperar los registros climáticos.";
+        if (typedTextEl) typedTextEl.innerText = "Error: No se pudieron recuperar los registros climáticos.";
       }
     });
+    
 
     // 4. Configurar el botón de reproducir audio (Sonificación)
     const btnPlay = document.getElementById("btn-play-zone");
