@@ -54,7 +54,9 @@ export class EarthScene {
     //RENDERIZA/DIBUJA LOS GRAFICOS EN EL HTML
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    
     this.container.appendChild(this.renderer.domElement);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);

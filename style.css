@@ -335,3 +335,81 @@ color: #00ffff !important; /* Cian brillante */
     clip: rect(20px, 9999px, 50px, 0);
   }
 }
+
+/* ==========================================
+   MEDIA QUERIES RESPONSIVE (MÓVILES Y TABLETS)
+   ========================================== */
+@media (max-width: 768px) {
+  
+  /* 1. Menú de inicio adaptado a celulares */
+  .intro-screen {
+    background-size: cover !important;
+    background-position: center !important;
+    justify-content: center !important;
+    padding-left: 0 !important;
+  }
+
+  .cyber-menu {
+    width: 90% !important;
+    max-width: 400px;
+    margin: 0 auto;
+    gap: 20px;
+  }
+
+  .logo-container h1 {
+    font-size: 2.8rem !important; /* Achicamos el título principal para que no rompa */
+  }
+
+  /* 2. Cabecera del HUD superior (se apila para que no choque la hora y el estado) */
+  .hud-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+
+  .logo {
+    font-size: 1.2rem;
+  }
+
+  .hud-stats {
+    width: 100%;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    gap: 10px;
+  }
+
+  .clock-container {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .abort-btn {
+    margin-left: 0;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+  }
+
+  /* 3. Panel lateral flotante (En celular pasa a la parte inferior para no tapar el globo 3D) */
+  .cyber-panel {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 15px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: 50vh; /* Altura máxima para que deje ver parte del planeta */
+    overflow-y: auto;  /* Permite hacer scroll si el texto de la terminal es largo */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.9);
+  }
+
+  .panel-content {
+    padding: 12px;
+  }
+
+  .terminal-text {
+    height: 80px; /* Achicamos un poco la terminal en móviles */
+    font-size: 0.75rem;
+  }
+}
