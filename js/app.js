@@ -169,12 +169,21 @@ export class AppController {
           }
         }
 
-        // Mensaje directo DENTRO de #typed-text
-        let textoImpacto = `Análisis completado para coordenadas (${zone.lat}, ${zone.lon}).`;
+        let textoImpacto = this.currentLang === 'es' 
+          ? `Análisis completado para coordenadas (${zone.lat}, ${zone.lon}).` 
+          : `Analysis completed for coordinates (${zone.lat}, ${zone.lon}).`;
+
         if (zone.impactKey && translations[this.currentLang] && translations[this.currentLang][zone.impactKey]) {
           textoImpacto = translations[this.currentLang][zone.impactKey];
         }
         if (typedTextEl) typedTextEl.innerText = textoImpacto;
+
+        const langCode = this.currentLang === 'es' ? 'es-ES' : 'en-US';
+        const mensajeAccesible = this.currentLang === 'es'
+          ? `Zona seleccionada: ${zone.name}. Temperatura actual: ${tempActual} grados Celsius. ${textoImpacto}`
+          : `Selected zone: ${zone.name}. Current temperature: ${tempActual} degrees Celsius. ${textoImpacto}`;
+
+        speakMessage(mensajeAccesible, langCode);
 
       } else {
         if (panelTempEl) panelTempEl.innerText = "🌡️ Datos no disponibles";
@@ -182,18 +191,19 @@ export class AppController {
       }
     });
 
-    // 4. Configurar el botón de reproducir audio (Sonificación y lectura completa)
+    // 4. Configurar el botón de reproducir audio (Sonificación y lectura bilingüe)
     const btnPlay = document.getElementById("btn-play-zone");
     if (btnPlay) {
       btnPlay.onclick = () => {
         console.log(`🎵 Sonificando coordenadas de ${zone.name}...` );
-        
-        // Reproduce el sintetizador espacial
         sonificarCoordenadas(zone.lat, zone.lon, tempActual);
 
-        // Lee los datos climáticos completos en voz alta al hacer clic en el botón de audio
-        const mensajeCompleto = `Región: ${zone.name}. Temperatura actual monitoreada: ${tempActual} grados Celsius.`;
-        speakMessage(mensajeCompleto, this.currentLang === 'es' ? 'es-ES' : 'en-US');
+        const langCode = this.currentLang === 'es' ? 'es-ES' : 'en-US';
+        const mensajeCompleto = this.currentLang === 'es'
+          ? `Región: ${zone.name}. Temperatura actual monitoreada: ${tempActual} grados Celsius.`
+          : `Region: ${zone.name}. Current monitored temperature: ${tempActual} degrees Celsius.`;
+
+        this.speakMessage(mensajeCompleto, langCode);
       };
     }
   }
