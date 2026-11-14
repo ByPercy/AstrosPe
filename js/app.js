@@ -7,9 +7,11 @@ import { translations } from "./idioma.js"; // <-- Importamos el diccionario cor
 export class AppController {
   constructor() {
     this.earth = new EarthScene("canvas-container");
+    this.currentLang = "es"; // <-- Asegúrate de tener esto aquí
   }
 
   changeLanguage(lang) {
+    this.currentLang = lang; // <-- Y esto aquí para que guarde el idioma
     const elements = document.querySelectorAll("[data-i18n]");
     elements.forEach(el => {
       const key = el.getAttribute("data-i18n");
@@ -78,41 +80,75 @@ export class AppController {
 
       if (intersects.length > 0) {
         const clickedMarker = intersects[0].object;
-        const zone = clickedMarker.userData; // Recuperamos { name, lat, lon }
+        const zone = clickedMarker.userData; // Recuperamos { name, lat, lon, historicalAvg, impactKey }
 
         console.log("-->¡Clic detectado en zona:", zone.name);
 
-        // 3. Abrir y llenar el panel HUD en el HTML
-        document.getElementById("info-panel").classList.remove("hidden");
-        document.getElementById("panel-title").innerText = zone.name;
-        document.getElementById("panel-coords").innerText = `Lat: ${zone.lat}, Lon: ${zone.lon}`;
-
-       // 2. NUEVO: Calcular y mostrar la hora local en tiempo real
-        const horaLocal = this.getLocalTime(zone.lon);
-        // Asegúrate de tener un elemento en tu HTML con id="panel-time", o créalo:
-        document.getElementById("panel-time").innerText = `🕒${horaLocal}`;
-
-        // 3. NUEVO: Consultar los grados de la NASA automáticamente al abrir la zona
-        document.getElementById("panel-temp").innerText = "🌡️";
-        
-        getClimateData(zone.lat, zone.lon).then(climateData => {
-          if (climateData && climateData.length > 0) {
-            // Tomamos el último valor de temperatura disponible del arreglo
-            const tempActual = climateData[climateData.length - 1];
-            document.getElementById("panel-temp").innerText = `🌡️${tempActual} °C`;
-          } else {
-            document.getElementById("panel-temp").innerText = "🌡️ Datos no disponibles";
-          }
-        });
-
-        // 4. Configurar el botón de reproducir para llamar a la API
-        const btnPlay = document.getElementById("btn-play-zone");
-        btnPlay.onclick = () => {
-          console.log(`🎵 Sonificando coordenadas de ${zone.name}...`);
-          sonificarCoordenadas(zone.lat, zone.lon);
-        };
+        // 3. Llamamos a nuestra función dedicada selectZone
+        await this.selectZone(zone);
       }
     });
+  }
+
+  // NUEVA FUNCIÓN DEDICADA PARA GESTIONAR LA SELECCIÓN DE ZONA Y DATOS CLIMÁTICOS
+  async selectZone(zone) {
+    // 1. Abrir y llenar el panel HUD básico
+    document.getElementById("info-panel").classList.remove("hidden");
+    document.getElementById("panel-title").innerText = zone.name;
+    document.getElementById("panel-coords").innerText = `Lat: ${zone.lat}, Lon: ${zone.lon}`;
+
+    // 2. Calcular y mostrar la hora local
+    const horaLocal = this.getLocalTime(zone.lon);
+    const panelTimeEl = document.getElementById("panel-time");
+    if (panelTimeEl) panelTimeEl.innerText = `🕒 ${horaLocal}`;
+
+    // 3. Consultar los grados de la NASA automáticamente al abrir la zona
+    const panelTempEl = document.getElementById("panel-temp");
+    if (panelTempEl) panelTempEl.innerText = "🌡️ Cargando datos...";
+
+    // Limpiamos la anomalía e impacto mientras carga
+    const anomalyElement = document.getElementById("panel-anomaly");
+    if (anomalyElement) anomalyElement.innerText = "";
+    
+    const terminalBox = document.getElementById("terminal-message");
+    if (terminalBox) terminalBox.innerText = "Conectando con la NASA POWER API...";
+
+    getClimateData(zone.lat, zone.lon).then(climateData => {
+      if (climateData && climateData.length > 0) {
+        const tempActual = climateData[climateData.length - 1];
+        if (panelTempEl) panelTempEl.innerText = `🌡️ ${tempActual} °C`;
+
+        // Opcional: Si implementaste el cálculo de anomalía térmica con historicalAvg:
+        if (zone.historicalAvg !== undefined) {
+          const anomaly = (tempActual - zone.historicalAvg).toFixed(1);
+          const anomalySign = anomaly > 0 ? `+${anomaly}` : anomaly;
+          if (anomalyElement) {
+            anomalyElement.innerText = `Anomalía vs histórico: ${anomalySign} °C`;
+            anomalyElement.style.color = anomaly > 0 ? 'var(--cyber-red)' : 'var(--cyber-cyan)';
+          }
+        }
+
+        // Mostrar texto de impacto si existe la clave
+        if (zone.impactKey && translations[this.currentLang] && translations[this.currentLang][zone.impactKey]) {
+          if (terminalBox) terminalBox.innerText = translations[this.currentLang][zone.impactKey];
+        } else {
+          if (terminalBox) terminalBox.innerText = `Análisis completado para coordenadas (${zone.lat}, ${zone.lon}).`;
+        }
+
+      } else {
+        if (panelTempEl) panelTempEl.innerText = "🌡️ Datos no disponibles";
+        if (terminalBox) terminalBox.innerText = "Error: No se pudieron recuperar los registros climáticos.";
+      }
+    });
+
+    // 4. Configurar el botón de reproducir audio (Sonificación)
+    const btnPlay = document.getElementById("btn-play-zone");
+    if (btnPlay) {
+      btnPlay.onclick = () => {
+        console.log(`🎵 Sonificando coordenadas de ${zone.name}...`);
+        sonificarCoordenadas(zone.lat, zone.lon);
+      };
+    }
   }
 }
 

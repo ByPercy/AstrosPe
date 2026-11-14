@@ -30,16 +30,15 @@ export class EarthScene {
     //Declaracion de zonas con lantitud y longitud correctas de cada zona
     //La zona Agregada aparecera en el mapa con un punto rojo gracias a la funcion Matematica de main.js
     this.zones = [
-      { id: "amazonas", name: "Selva del Amazonas", lat: -3.4653, lon: -62.2159 },
-      { id: "tokyo", name: "Tokio, Japón", lat: 35.6762, lon: 139.6503 },
-      { id: "sahara", name: "Desierto del Sahara", lat: 23.4162, lon: 25.6628 },
-      { id: "lima", name: "Peru, Lima", lat: -12.13719756358539, lon: -76.92141636188363 },
-      // --- NUEVOS PUNTOS CLAVE DE MONITOREO DE LA NASA ---
-      { id: "greenland", name: "Groenlandia (Deshielo Polar)", lat: 72.5798, lon: -38.4590 },
-      { id: "antarctica", name: "Antártida (Base McMurdo)", lat: -77.8419, lon: 166.6863 },
-      { id: "death_valley", name: "Valle de la Muerte, EE.UU", lat: 36.5323, lon: -116.9325 },
-      { id: "coral_reef", name: "Gran Barrera de Coral, Australia", lat: -18.2871, lon: 147.6992 },
-      { id: "siberia", name: "Siberia (Permafrost Ruso)", lat: 66.4238, lon: 112.4281 }
+      { id: "amazonas", name: "Selva del Amazonas", lat: -3.4653, lon: -62.2159, historicalAvg: 26.5, impactKey: "impact_amazon" },
+      { id: "tokyo", name: "Tokio, Japón", lat: 35.6762, lon: 139.6503, historicalAvg: 15.0, impactKey: "impact_tokyo" },
+      { id: "sahara", name: "Desierto del Sahara", lat: 23.4162, lon: 25.6628, historicalAvg: 30.0, impactKey: "impact_sahara" },
+      { id: "lima", name: "Perú, Lima", lat: -12.1371, lon: -76.9214, historicalAvg: 19.5, impactKey: "impact_lima" },
+      { id: "greenland", name: "Groenlandia (Deshielo Polar)", lat: 72.5798, lon: -38.4590, historicalAvg: -10.0, impactKey: "impact_greenland" },
+      { id: "antarctica", name: "Antártida (Base McMurdo)", lat: -77.8419, lon: 166.6863, historicalAvg: -20.0, impactKey: "impact_antarctica" },
+      { id: "death_valley", name: "Valle de la Muerte, EE.UU.", lat: 36.5323, lon: -116.9325, historicalAvg: 25.0, impactKey: "impact_death" },
+      { id: "coral_reef", name: "Gran Barrera de Coral, Australia", lat: -18.2871, lon: 147.6992, historicalAvg: 24.0, impactKey: "impact_coral" },
+      { id: "siberia", name: "Siberia (Permafrost Ruso)", lat: 66.4238, lon: 112.4281, historicalAvg: -5.0, impactKey: "impact_siberia" }
     ];
     this.markerGroup = null;
 
