@@ -117,6 +117,11 @@ export class EarthScene {
     );
     this.scene.add(this.clouds);
 
+    // Detecta pantallas móviles o dispositivos táctiles
+const isMobile =
+  window.innerWidth <= 768 || window.matchMedia("(pointer: coarse)").matches;
+const scaleFactor = isMobile ? 1.6 : 1.0; // 60% más grande en celular, intacto en PC
+
 
     //CREACION DE ASPECTO PUNTOS ROJOS (ZONAS INTERACTIVAS)--
     this.markerGroup = new THREE.Group();
@@ -128,6 +133,7 @@ export class EarthScene {
 
       const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
       const marker = new THREE.Mesh(dotGeometry, dotMaterial);
+      marker.scale.setScalar(scaleFactor); // <-- Escala automáticamente en móvil
       
       // La Tierra tiene radio 4, ponemos los puntos en 4.15 para que floten encima
       const position = latLonToVector3(zone.lat, zone.lon, 4.15);
