@@ -55,7 +55,6 @@ export class EarthScene {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setPixelRatio(window.devicePixelRatio);
     
     this.container.appendChild(this.renderer.domElement);
 
@@ -133,9 +132,9 @@ export class EarthScene {
     });
 
     // --- LUZ DINÁMICA DEL SOL ---
-    this.sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    this.sunLight = new THREE.DirectionalLight(0xffffff, 2.6);
     this.scene.add(this.sunLight);
-    this.scene.add(new THREE.AmbientLight(0x111122, 0.2));
+    this.scene.add(new THREE.AmbientLight(0x111122, 0.4));
 
 
     // Estrellas
@@ -154,22 +153,20 @@ export class EarthScene {
     if (!this.sunLight) return;
 
     const now = new Date();
-    const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60; // Hora decimal UTC (ej: 14.5)
+    // 1. Longitud solar: a las 12:00 UTC el Sol está en 0°; avanza 15° por hora hacia el oeste
+    const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
+    let sunLon = (12 - utcHours) * 15;
+    if (sunLon > 180) sunLon -= 360;
+    if (sunLon < -180) sunLon += 360;
 
-    // El sol da una vuelta completa (360°) cada 24 horas
-    const sunAngle = (utcHours / 24) * Math.PI * 2;
+    // 2. Latitud solar (declinación estacional aproximada según el día del año)
+    const startOfYear = new Date(Date.UTC(now.getUTCFullYear(), 0, 0));
+    const dayOfYear = Math.floor((now - startOfYear) / 86400000);
+    const sunLat = 23.44 * Math.sin(((360 / 365) * (dayOfYear - 81) * Math.PI) / 180);
 
-    const distance = 40; // Distancia de la luz del sol
-    
-    // 🌍Agregamos un desfase (offset) para alinear la textura 
-    // de la imagen con el sol real del planeta. 
-    const textureOffset = Math.PI;
-    
-    // Movemos la luz del sol en un círculo alrededor del eje Y (rotación terrestre)
-    const sunX = Math.cos(sunAngle - Math.PI / 2 + textureOffset) * distance;
-    const sunZ = Math.sin(sunAngle - Math.PI / 2 + textureOffset) * distance;
-
-    this.sunLight.position.set(sunX, 0, sunZ);
+    // 3. Colocamos el Sol a distancia 25 en esa dirección exacta
+    const sunPos = latLonToVector3(sunLat, sunLon, 25);
+    this.sunLight.position.copy(sunPos);
   }
 
 
