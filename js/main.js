@@ -116,9 +116,10 @@ export class EarthScene {
     this.scene.add(this.markerGroup);
 
     const dotGeometry = new THREE.SphereGeometry(0.12, 16, 16);
-    const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); //color de ahora Rojo brillante
 
     this.zones.forEach(zone => {
+
+      const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
       const marker = new THREE.Mesh(dotGeometry, dotMaterial);
       
       // La Tierra tiene radio 4, ponemos los puntos en 4.15 para que floten encima
@@ -191,5 +192,54 @@ export class EarthScene {
     if (this.moonOrbit) this.moonOrbit.rotation.y += 0.0002;
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
+  }
+
+  updateMarkerClimateColor(zoneId, anomaly) {
+    const marker = this.markerGroup.children.find(m => m.userData.id === zoneId);
+    if (!marker) return;
+
+    const absDiff = Math.abs(anomaly);
+    let hexColor = 0x00ff66; // Verde: clima acorde a la zona
+
+    if (absDiff > 4.5) {
+      hexColor = 0xff2244;   // Rojo: anomalía crítica fuera de rango
+    } else if (absDiff > 2.0) {
+      hexColor = 0xffcc00;   // Amarillo: punto medio / variación moderada
+    }
+
+    marker.material.color.setHex(hexColor);
+  }
+
+  focusOnZone(zone) {
+    this.controls.autoRotate = false;
+
+    // Agranda ligeramente solo el punto seleccionado sin alterar su color de clima
+    this.markerGroup.children.forEach((marker) => {
+      const isSelected = marker.userData.id === zone.id;
+      marker.scale.setScalar(isSelected ? 1.6 : 1.0);
+    });
+
+    const camTarget = latLonToVector3(zone.lat, zone.lon, 10.5);
+    gsap.to(this.camera.position, {
+      x: camTarget.x,
+      y: camTarget.y,
+      z: camTarget.z,
+      duration: 1.4,
+      ease: "power2.inOut",
+    });
+  }
+
+  resetView() {
+    this.controls.autoRotate = true;
+    this.markerGroup.children.forEach(m => m.scale.setScalar(1.0));
+
+    const dir = this.camera.position.clone().normalize().multiplyScalar(15);
+    gsap.to(this.camera.position, {
+      x: dir.x,
+      y: dir.y,
+      z: dir.z,
+      duration: 1.2,
+      ease: "power2.out",
+    });
   }
 }

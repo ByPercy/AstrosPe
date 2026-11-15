@@ -68,7 +68,7 @@
           <span class="panel-title" id="panel-title" data-i18n="zone"
             >ZONA SELECCIONADA</span
           >
-          <button id="btn-close-panel">X</button>
+          <button id="btn-close-panel" aria-label="Cerrar panel de información">X</button>
         </div>        
         <div class="panel-content">
           <div class="data-row">
@@ -85,7 +85,7 @@
           </div>
           
           <div class="terminal-text" id="panel-desc">
-            <span id="typed-text"></span><span class="cursor">_</span>
+            <span id="typed-text" aria-live="polite" aria-atomic="true"></span><span class="cursor">_</span>
           </div>
           <button id="btn-play-zone" class="cyber-btn mt-2" data-i18n="play">
             REPRODUCIR SECUENCIA
@@ -94,7 +94,7 @@
       </aside>
 
       <div class="hud-footer">
-        <p data-i18n="footer">> SELECCIONA UN PUNTO EN EL PLANETA</p>
+        <p data-i18n="footer">> SELECCIONA UN PUNTO EN EL PLANETA | TECLAS [1-9] ZONAS · [S] SONIFICAR · [H] AYUDA</p>
       </div>
     </div>
 

@@ -18,7 +18,11 @@ export const translations = {
     impact_antarctica: "Alerta: La pérdida de masa polar altera las corrientes oceánicas y climas globales.",
     impact_coral: "Alerta: El calentamiento del agua oceánica provoca el blanqueamiento y muerte de los arrecifes.",
     impact_siberia: "Alerta: El deshielo del permafrost libera grandes cantidades de metano a la atmósfera.",
-    anomaly_text: "Anomalía térmica vs promedio histórico: "
+    anomaly_text: "Anomalía térmica vs promedio histórico: ",
+    impact_tokyo: "Alerta: Región urbana expuesta a variaciones térmicas y al efecto de isla de calor.",
+    impact_sahara: "Análisis: Región desértica caracterizada por condiciones de elevada temperatura y aridez extrema.",
+    impact_lima: "Análisis: Región costera influenciada por el océano Pacífico y sus variaciones térmicas.",
+    impact_death: "Alerta: Valle desértico conocido por registrar temperaturas extremas en superficie.",
   },
   en: {
     travel: "TRAVEL TO EARTH",
@@ -38,6 +42,10 @@ export const translations = {
     impact_antarctica: "Alert: Polar mass loss disrupts ocean currents and global climates.",
     impact_coral: "Alert: Ocean warming causes mass coral bleaching and ecosystem collapse.",
     impact_siberia: "Alert: Permafrost thaw releases massive amounts of trapped methane into the atmosphere.",
-    anomaly_text: "Thermal anomaly vs historical avg: "
+    anomaly_text: "Thermal anomaly vs historical avg: ",
+    impact_tokyo: "Alert: Urban region exposed to temperature variations and the urban heat island effect.",
+    impact_sahara: "Analysis: Desert region characterized by high temperatures and extreme aridity.",
+    impact_lima: "Analysis: Coastal region influenced by the Pacific Ocean and its thermal variations.",
+    impact_death: "Alert: Desert valley known for recording extreme surface temperatures.",
   }
 };

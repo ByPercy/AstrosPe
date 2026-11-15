@@ -1,33 +1,66 @@
 //no tocar archivo, estamos en proceso de conseguir las apis de la nasa como informacion planetario geografico y climatico
 // js/api.js - El especialista en datos climáticos de la NASA
+// js/api.js - Consulta rápida (7 días recientes + promedio histórico real del mes)
+
+// js/api.js - Consulta temperatura reciente y climatología histórica real de la NASA
+
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+function formatDateYYYYMMDD(date) {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  return `${y}${m}${d}`;
+}
 
 export async function getClimateData(lat, lon) {
   try {
-    // Usamos fechas de ejemplo recientes para pedir datos diarios de temperatura (T2M)
-    const url = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M&community=RE&longitude=${lon}&latitude=${lat}&start=20260101&end=20260107&format=JSON`;
+    // Calculamos una ventana reciente segura (de hace 10 días a hace 4 días)
+    // para evitar el desfase de 2-5 días que tiene el satélite al publicar datos
+    const endDate = new Date();
+    endDate.setUTCDate(endDate.getUTCDate() - 4);
 
-    console.log(`📡(waa) Consultando datos a la NASA para [Lat: ${lat}, Lon: ${lon}]...`);
+    const startDate = new Date();
+    startDate.setUTCDate(startDate.getUTCDate() - 10);
 
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Error en la red de la NASA: ${response.statusText}`);
+    const startStr = formatDateYYYYMMDD(startDate);
+    const endStr = formatDateYYYYMMDD(endDate);
+    const currentMonthKey = MONTHS[endDate.getUTCMonth()]; // Ej: "NOV"
+
+    const dailyUrl = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M&community=RE&longitude=${lon}&latitude=${lat}&start=${startStr}&end=${endStr}&format=JSON`;
+    const climUrl = `https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=T2M&community=RE&longitude=${lon}&latitude=${lat}&format=JSON`;
+
+    const [dailyRes, climRes] = await Promise.all([
+      fetch(dailyUrl),
+      fetch(climUrl)
+    ]);
+
+    if (!dailyRes.ok || !climRes.ok) {
+      throw new Error("Error en la respuesta de NASA POWER API");
     }
 
-    const data = await response.json();
+    const [dailyData, climData] = await Promise.all([
+      dailyRes.json(),
+      climRes.json()
+    ]);
 
-    // Extraemos el objeto con los valores diarios de temperatura
-    const temperaturesObject = data.properties.parameter.T2M;
+    // Filtramos valores válidos (la NASA usa -999 cuando falta un dato)
+    const rawTemps = Object.values(dailyData.properties.parameter.T2M);
+    const validTemps = rawTemps.filter((val) => typeof val === "number" && val > -900);
 
-    // Convertimos ese objeto en un arreglo simple de números: [22.5, 23.1, 21.0, ...]
-    const temperaturesArray = Object.values(temperaturesObject);
+    if (!validTemps.length) return null;
 
-    console.log("✅ Datos numéricos obtenidos con éxito:", temperaturesArray);
+    const currentTemp = validTemps[validTemps.length - 1];
+    const historicalAvg = climData.properties.parameter.T2M[currentMonthKey];
 
-    return temperaturesArray; // Esto es lo que luego le enviaremos al audio.js
-
+    return {
+      currentTemp,
+      historicalAvg,
+      month: currentMonthKey,
+      temperatures: validTemps
+    };
   } catch (error) {
     console.error("❌ Falló la conexión con la API de la NASA:", error);
-    return []; // Retornamos un arreglo vacío para que el sistema no se rompa
+    return null;
   }
 }

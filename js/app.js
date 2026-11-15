@@ -12,38 +12,47 @@ if ('speechSynthesis' in window) {
 }
 
 export function speakMessage(text, lang = 'es-ES') {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); // Cancela locuciones anteriores
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.rate = 1.0;   // Velocidad natural
-    utterance.pitch = 0.95; // Tono ligeramente más cálido y profesional
+  if (!('speechSynthesis' in window)) return;
 
-    // Obtenemos todas las voces del navegador
-    const voices = window.speechSynthesis.getVoices();
-    
-    // 🌟 FILTRO PRO: Buscamos específicamente voces "Neural", "Natural", "Google" o "Microsoft" en español
-    const bestVoice = voices.find(v => 
-      v.lang.startsWith('es') && 
-      (v.name.includes('Neural') || v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Microsoft'))
-    ) || voices.find(v => v.lang.startsWith('es')); // Respaldo a cualquier voz en español
+  window.speechSynthesis.cancel();
 
-    if (bestVoice) {
-      utterance.voice = bestVoice;
-      console.log("🎙️ Usando voz IA/Neural de alta calidad:", bestVoice.name);
-    }
+  // Limpiamos el texto para que se pronuncie con pausas naturales y lea bien los negativos
+  const langPrefix = lang.slice(0, 2).toLowerCase();
+  const cleanText = text
+    .replace(/°C/g, langPrefix === 'es' ? ' grados Celsius' : ' degrees Celsius')
+    .replace(/-(\d)/g, langPrefix === 'es' ? 'menos $1' : 'minus $1');
 
-    window.speechSynthesis.speak(utterance);
-  } else {
-    console.warn("Tu navegador no soporta síntesis de voz.");
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = lang;
+  utterance.rate = 0.96; // Ligeramente más pausado para mayor claridad
+  utterance.pitch = 1.0; // Tono natural sin distorsión
+
+  const voices = window.speechSynthesis.getVoices();
+  const langVoices = voices.filter(v => v.lang.toLowerCase().startsWith(langPrefix));
+
+  // Priorizamos de mejor a peor calidad:
+  // 1. Voces Neuronales / Online (Edge / móviles)
+  // 2. Voces de Google en la nube (Chrome oficial)
+  // 3. Cualquier voz en la nube (!localService) antes que el sintetizador robótico del sistema
+  const bestVoice =
+    langVoices.find(v => /Natural|Neural|Online/i.test(v.name)) ||
+    langVoices.find(v => /Google/i.test(v.name)) ||
+    langVoices.find(v => !v.localService) ||
+    langVoices[0];
+
+  if (bestVoice) {
+    utterance.voice = bestVoice;
   }
+
+  window.speechSynthesis.speak(utterance);
 }
 
 export class AppController {
   constructor() {
     this.earth = new EarthScene("canvas-container");
-    this.currentLang = "es"; // <-- Asegúrate de tener esto aquí
+    this.currentLang = "es";
+    this.activeZoneId = null; // Evita que respuestas tardías de la API se crucen
+    this.setupKeyboardAccessibility();
   }
 
   changeLanguage(lang) {
@@ -71,6 +80,10 @@ export class AppController {
     // 1. Inicializa el mundo 3D en pantalla
     this.earth.init();
 
+    this.evaluateAllZones(); // <-- Evalúa el clima de las 9 zonas al entrar
+
+    window.appZones = this.earth.zones;
+
     // 2. Ejecuta la animación de la cámara con GSAP
     this.earth.zoomIn();
 
@@ -84,6 +97,19 @@ export class AppController {
     // 5. Boton Cerrar
     document.getElementById("btn-close-panel").addEventListener("click", () => {
       document.getElementById("info-panel").classList.add("hidden");
+    });
+  }
+
+  evaluateAllZones() {
+    this.earth.zones.forEach(async (zone) => {
+      const data = await getClimateData(zone.lat, zone.lon);
+      if (data && data.currentTemp !== undefined) {
+        const histReal = data.historicalAvg ?? zone.historicalAvg;
+        if (histReal !== undefined) {
+          const diff = data.currentTemp - histReal;
+          this.earth.updateMarkerClimateColor(zone.id, diff);
+        }
+      }
     });
   }
 
@@ -126,8 +152,81 @@ export class AppController {
     });
   }
 
+setupKeyboardAccessibility() {
+    window.addEventListener("keydown", (e) => {
+      // Ignoramos si el usuario está escribiendo o usando Ctrl/Alt
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+      if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT") return;
+
+      const key = e.key.toLowerCase();
+      const langCode = this.currentLang === "es" ? "es-ES" : "en-US";
+      const introScreen = document.getElementById("intro-screen");
+      const isIntroVisible = introScreen && !introScreen.classList.contains("fade-out");
+
+      // 1. Si seguimos en la pantalla de portada, Enter inicia la misión
+      if (isIntroVisible) {
+        if (key === "enter") {
+          e.preventDefault();
+          this.startMission();
+        }
+        return;
+      }
+
+      // 2. Teclas 1 al 9: seleccionar directamente una de las 9 zonas
+      const index = parseInt(e.key, 10) - 1;
+      if (index >= 0 && index < this.earth.zones.length) {
+        e.preventDefault();
+        this.selectZone(this.earth.zones[index]);
+        return;
+      }
+
+      // 3. Atajos de control rápido
+      switch (key) {
+        case "s": // Reproducir sonificación del clima de la zona abierta
+          e.preventDefault();
+          const btnPlay = document.getElementById("btn-play-zone");
+          if (btnPlay && !document.getElementById("info-panel").classList.contains("hidden")) {
+            btnPlay.click();
+          }
+          break;
+
+        case "x": // Silenciar voz inmediatamente
+          e.preventDefault();
+          if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+          break;
+
+        case "i": // Cambiar idioma (ES <-> EN)
+          e.preventDefault();
+          const nextLang = this.currentLang === "es" ? "en" : "es";
+          document.getElementById("lang-select").value = nextLang;
+          this.changeLanguage(nextLang);
+          speakMessage(
+            nextLang === "es" ? "Idioma cambiado a español." : "Language changed to English.",
+            nextLang === "es" ? "es-ES" : "en-US"
+          );
+          break;
+
+        case "h": // Ayuda de comandos por voz
+          e.preventDefault();
+          const ayuda = this.currentLang === "es"
+            ? "Controles: números del 1 al 9 para elegir zona. Tecla S para escuchar la sonificación del clima. Tecla I para cambiar idioma. Tecla X para silenciar. Escape para cerrar el panel."
+            : "Controls: numbers 1 to 9 to select a zone. Key S to play climate sonification. Key I to switch language. Key X to mute. Escape to close the panel.";
+          speakMessage(ayuda, langCode);
+          break;
+
+        case "escape": // Cerrar el panel lateral
+          e.preventDefault();
+          document.getElementById("info-panel").classList.add("hidden");
+          if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+          break;
+      }
+    });
+  }
+
   // NUEVA FUNCIÓN DEDICADA PARA GESTIONAR LA SELECCIÓN DE ZONA Y DATOS CLIMÁTICOS
   async selectZone(zone) {
+
+    this.activeZoneId = zone.id; // <-- ESTA LÍNEA ES OBLIGATORIA para que no se trabe
     // 1. Abrir y llenar el panel HUD básico
     document.getElementById("info-panel").classList.remove("hidden");
     document.getElementById("panel-title").innerText = zone.name;
@@ -148,24 +247,37 @@ export class AppController {
     
     const typedTextEl = document.getElementById("typed-text");
     if (typedTextEl) typedTextEl.innerText = "Conectando con la NASA POWER API...";
-    
-    // 🌟 ACCESIBILIDAD INMEDIATA: Habla al instante del clic del usuario (evita bloqueo del navegador)
-    speakMessage(`Zona seleccionada: ${zone.name}. Consultando datos satelitales de la NASA.`, this.currentLang === 'es' ? 'es-ES' : 'en-US');
 
+    // Callamos cualquier narración anterior si el usuario cambió rápido de zona
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    
     let tempActual = 25; 
 
-    getClimateData(zone.lat, zone.lon).then(climateData => {
-      if (climateData && climateData.length > 0) {
-        tempActual = climateData[climateData.length - 1]; // Asignamos el valor real
-        if (panelTempEl) panelTempEl.innerText = `🌡️ ${tempActual} °C`;
+    getClimateData(zone.lat, zone.lon).then((climateData) => {
+      if (this.activeZoneId !== zone.id) return;
 
-        // Cálculo de la anomalía térmica
-        if (zone.historicalAvg !== undefined) {
-          const anomaly = (tempActual - zone.historicalAvg).toFixed(1);
-          const anomalySign = anomaly > 0 ? `+${anomaly}` : anomaly;
+      if (climateData && climateData.currentTemp !== undefined) {
+        tempActual = climateData.currentTemp;
+        // Usa el promedio histórico real de la NASA (o el de main.js como respaldo)
+        const histReal = climateData.historicalAvg ?? zone.historicalAvg;
+
+        if (panelTempEl) panelTempEl.innerText = `🌡️ ${tempActual.toFixed(1)} °C`;
+
+        // Cálculo de la anomalía térmica con datos reales del mes actual
+        if (histReal !== undefined) {
+          const diff = tempActual - histReal;
+          const anomaly = diff.toFixed(1);
+          const anomalySign = diff > 0 ? `+${anomaly}` : anomaly;
+
+          this.earth.updateMarkerClimateColor(zone.id, diff);
+
           if (anomalyElement) {
-            anomalyElement.innerText = `${anomalySign} °C vs hist.`;
-            anomalyElement.style.color = anomaly > 0 ? '#ff3366' : '#00ffff';
+            anomalyElement.innerText = `${anomalySign} °C vs hist. (${climateData.month})`;
+            const absDiff = Math.abs(diff);
+            anomalyElement.style.color =
+              absDiff > 4.5 ? "#ff2244" : absDiff > 2.0 ? "#ffcc00" : "#00ff66";
           }
         }
 
@@ -195,15 +307,13 @@ export class AppController {
     const btnPlay = document.getElementById("btn-play-zone");
     if (btnPlay) {
       btnPlay.onclick = () => {
+        // Si la voz estaba leyendo la descripción, la callamos para escuchar limpio el sonido del clima
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
+
         console.log(`🎵 Sonificando coordenadas de ${zone.name}...` );
         sonificarCoordenadas(zone.lat, zone.lon, tempActual);
-
-        const langCode = this.currentLang === 'es' ? 'es-ES' : 'en-US';
-        const mensajeCompleto = this.currentLang === 'es'
-          ? `Región: ${zone.name}. Temperatura actual monitoreada: ${tempActual} grados Celsius.`
-          : `Region: ${zone.name}. Current monitored temperature: ${tempActual} degrees Celsius.`;
-
-        this.speakMessage(mensajeCompleto, langCode);
       };
     }
   }
@@ -277,7 +387,6 @@ function getUserLocationAndUTC() {
     }
   });
 }
-
 
 
 document.getElementById("btn-enter").addEventListener("click", () => {
