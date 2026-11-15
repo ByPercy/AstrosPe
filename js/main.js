@@ -1,6 +1,15 @@
-import * as THREE from "three"; //herramienta 3D de js
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import * as THREE from "three"; //herramienta 3D de js, Motor que servira como base para crear el globo terraquio, la luna y estrellas
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";//Libreria para Interaccion con el mouse para rotar, acercar y alejar la camara
 
+
+/**
+ * Convierte coordenadas geográficas (latitud y longitud en grados) a coordenadas cartesianas 3D (x, y, z)
+ * sobre una esfera de un radio determinado.
+ * @param {number} lat - Latitud en grados (-90 a 90)
+ * @param {number} lon - Longitud en grados (-180 a 180)
+ * @param {number} radius - Distancia desde el centro de la esfera
+ * @returns {THREE.Vector3} Posición 3D exacta en la escena
+ */
 // Función para transformar Lat/Lon en un punto 3D sobre la esfera
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -11,10 +20,9 @@ function latLonToVector3(lat, lon, radius) {
   return new THREE.Vector3(x, y, z);
 }
 
-
-
-//Export para que "app.js" pueda llamar a este archivo
-//Crea variables vacias para la creacion 3D de la pagina
+////---------------------------------------------------///
+///CREACCION DE VARIABLES VACIAS PARA LOS ELEMENTOS 3D///
+//---------------------------------------------------///
 export class EarthScene {
   constructor(containerId) {
     this.container = document.getElementById(containerId); //captura el ID del contenedor HTML "canvas-container"

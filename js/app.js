@@ -50,6 +50,10 @@ export class AppController {
     this.currentLang = "es";
     this.activeZoneId = null;
     this.started = false;
+    this.introAudio = null;
+    this.introPlayed = false;
+    this._unlockAudioHandler = null;
+
     this.earth.init();
     this.setupKeyboardAccessibility();
   }
@@ -63,11 +67,65 @@ export class AppController {
         el.innerText = translations[lang][key];
       }
     });
+
+    // Si seguimos en la pantalla inicial, reinicia el MP3 de bienvenida en el nuevo idioma
+    const introScreen = document.getElementById("intro-screen");
+    if (introScreen && !introScreen.classList.contains("fade-out")) {
+      this.stopIntroAudio();
+      this.introPlayed = false;
+      this.playIntroAudio();
+    }
+  }
+
+  playIntroAudio() {
+    if (this.introPlayed) return;
+
+    const src =
+      this.currentLang === "es"
+        ? "./assets/Audio/Español.mp3"
+        : "./assets/Audio/English.mp3";
+    this.stopIntroAudio();
+    this.introAudio = new Audio(src);
+    this.introAudio.volume = 0.9;
+
+    this.introAudio
+      .play()
+      .then(() => {
+        this.introPlayed = true;
+      })
+      .catch(() => {
+        this._unlockAudioHandler = (e) => {
+          // Si hizo clic en "Viajar a la Tierra" o presionó Enter, no disparamos el intro
+          if (e.target?.closest?.("#btn-enter") || e.key === "Enter") return;
+          if (!this.introPlayed) {
+            this.playIntroAudio();
+          }
+        };
+        window.addEventListener("click", this._unlockAudioHandler, { once: true });
+        window.addEventListener("keydown", this._unlockAudioHandler, { once: true });
+      });
+  }
+
+  stopIntroAudio() {
+    if (this._unlockAudioHandler) {
+      window.removeEventListener("click", this._unlockAudioHandler);
+      window.removeEventListener("keydown", this._unlockAudioHandler);
+      this._unlockAudioHandler = null;
+    }
+    if (this.introAudio) {
+      this.introAudio.pause();
+      this.introAudio.currentTime = 0;
+      this.introAudio = null;
+    }
   }
 
   async startMission() {
     if (this.started) return;
     this.started = true;
+    
+    //CORTA EL AUDIO DE BIENVENIDA SI ESTÁ SONANDO
+    this.introPlayed = true;
+    this.stopIntroAudio();
 
     const userGeo = await getUserLocationAndUTC();
 
@@ -157,8 +215,12 @@ export class AppController {
         if (key === "enter") {
           e.preventDefault();
           this.startMission();
+          return;
         }
-        return;
+        // Permite cambiar de idioma (I) o silenciar (X) también en la pantalla inicial
+        if (key !== "i" && key !== "x" && key !== "h") {
+          return;
+        }
       }
 
       const index = parseInt(e.key, 10) - 1;
@@ -183,6 +245,7 @@ export class AppController {
 
         case "x":
           e.preventDefault();
+          this.stopIntroAudio();
           if ("speechSynthesis" in window) window.speechSynthesis.cancel();
           detenerSonificacion();
           break;
@@ -192,17 +255,31 @@ export class AppController {
           const nextLang = this.currentLang === "es" ? "en" : "es";
           document.getElementById("lang-select").value = nextLang;
           this.changeLanguage(nextLang);
-          speakMessage(
-            nextLang === "es"
-              ? "Idioma cambiado a español."
-              : "Language changed to English.",
-            nextLang === "es" ? "es-ES" : "en-US"
-          );
+
+          // Solo usa voz sintética dentro del globo (en la portada suena el MP3)
+          if (!isIntroVisible) {
+            speakMessage(
+              nextLang === "es"
+                ? "Idioma cambiado a español."
+                : "Language changed to English.",
+              nextLang === "es" ? "es-ES" : "en-US"
+            );
+          }
           break;
         }
 
         case "h": {
           e.preventDefault();
+          this.stopIntroAudio();
+          detenerSonificacion();
+
+          // En la pantalla inicial repite el MP3 de bienvenida con los controles
+          if (isIntroVisible) {
+            this.introPlayed = false;
+            this.playIntroAudio();
+            return;
+          }
+
           const ayuda =
             this.currentLang === "es"
               ? "Controles: números del 1 al 9 para elegir zona. Tecla S para escuchar la sonificación del clima. Tecla I para cambiar idioma. Tecla X para silenciar. Escape para cerrar el panel."
@@ -400,4 +477,8 @@ document.getElementById("btn-enter").addEventListener("click", () => {
 
 document.getElementById("btn-abort").addEventListener("click", () => {
   location.reload();
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+  app.playIntroAudio();
 });
